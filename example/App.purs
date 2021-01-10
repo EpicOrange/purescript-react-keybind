@@ -30,12 +30,12 @@ myComponent = do
       liftEffect $ modifyState \{ totalFiles } -> { isSaved: true, totalFiles }
 
     React.useEffectOnce do
-      _ <- registerShortcut (handler preventDefault (const save)) ["s", "ctrl+s", "cmd+s"] "Save" "Save a file" empty
-      _ <- registerShortcut (handler preventDefault (const create)) ["n", "ctrl+n", "cmd+n"] "New" "Create a new file" empty
+      _ <- registerShortcut (handler preventDefault (const save)) ["ctrl+s", "cmd+s"] "Save" "Save a file" empty
+      _ <- registerShortcut (handler preventDefault (const create)) ["ctrl+n", "cmd+n"] "New" "Create a new file" empty
       log "Registered shortcuts!"
       pure do
-        _ <- unregisterShortcut ["s", "ctrl+s", "cmd+s"]
-        _ <- unregisterShortcut ["n", "ctrl+n", "cmd+n"]
+        _ <- unregisterShortcut ["ctrl+s", "cmd+s"]
+        _ <- unregisterShortcut ["ctrl+n", "cmd+n"]
         log "Unregistered shortcuts!"
 
     pure $ div_ $
