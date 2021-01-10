@@ -1,0 +1,23 @@
+{
+  "name": "purescript-react-keybind",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "spago build && parcel build --public-url ./ html/index.html",
+    "serve": "parcel html/index.html"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-keybind": "^0.8.1"
+  },
+  "devDependencies": {
+    "parcel": "^1.12.4"
+  }
+}
