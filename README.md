@@ -4,24 +4,25 @@
 
 This library provides Purescript bindings for [this library of the same name](https://github.com/UnicornHeartClub/react-keybind).
 
-The majority of documentation can be found [here](https://pursuit.purescript.org/packages/purescript-react-keybind). There is also an example in `examples/` that can be built by running:
+The majority of documentation can be found [on Pursuit](https://pursuit.purescript.org/packages/purescript-react-keybind). There is also an example app in `examples/` that can be built by running:
 
 ```
 npm i
 npm run serve-example
 ```
 
-## Installation
+## Installation (with `spago`)
+
+Since this package is not yet on [`package-sets`](https://github.com/purescript/package-sets), installation is not as easy as `spago install react-keybind`.
 
 Add the following to `additions` in your `packages.dhall`:
 
 ```
 let additions =
-      { tree =
+      { react-keybind =
         { dependencies =
             [ "react-basic"
             , "react-basic-classic"
-            , "undefined-or"
             ]
         , repo = "https://github.com/EpicOrange/purescript-react-keybind"
         , version = "v0.8.1"
