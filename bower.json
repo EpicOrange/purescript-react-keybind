@@ -1,0 +1,20 @@
+{
+    "name": "purescript-react-keybind",
+    "license": [
+        "MIT"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/EpicOrange/purescript-react-keybind"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "output"
+    ],
+    "dependencies": {
+        "purescript-react-basic": "^v15.0.0",
+        "purescript-react-basic-classic": "git://github.com/lumihq/purescript-react-basic-classic.git#v1.0.1"
+    }
+}
