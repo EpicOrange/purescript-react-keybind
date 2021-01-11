@@ -1,134 +1,59 @@
+-- | This module provides bindings for the components provided
+-- | by the `react-keybind` library, and are meant to be used in the
+-- | same fashion as in [React.Basic.DOM](https://pursuit.purescript.org/search?q=React.Basic.DOM).
+-- | 
+-- | Quick usage guide for `shortcutProvider`, `shortcutConsumer`, and `withShortcut`:
+-- | ```
+-- | shortcutProvider { children: [], ignoreKeys: ["shift", "ctrl"] } [ ... ]
+-- |
+-- | shortcutConsumer \\{registerShortcut, shortcuts} -> [ ... ]
+-- |
+-- | myShortcutComponent :: Component {}
+-- | myShortcutComponent = withShortcut "MyShortcutComponent" $
+-- |   React.component "MyComponent" \{ shortcut: {registerShortcut, unregisterShortcut} } -> React.do
+-- |   ...
+-- | ```
+-- |
+-- | Quick guide to `registerShortcut`:
+-- | ```
+-- |  _ <- registerShortcut { method: handler_ save
+-- |                        , keys: ["ctrl+s", "cmd+s"]
+-- |                        , title: "Save"
+-- |                        , description: "Save a file"
+-- |                        , holdDuration: Nothing }
+-- | ```
+-- |   
+-- | The `keys` field binds every matching key to the given `method` handler.
+-- | It's checked (case-insensitive) against KeyboardEvent.key, and
+-- | can be modified with `ctrl`, `alt`, `meta`/`cmd`, and `shift`.
+-- | 
+-- | For further guidance, check out the examples folder in the git repo!
+
 module React.Keybind
   ( shortcutConsumer
   , shortcutProvider
   , shortcutProvider_
-  , ProviderRenderProps
-  , ProviderRenderPropsRow
-  , WithShortcutProps
-  , WithShortcutPropsRow
   , withShortcut
-  , withShortcut'
-  , IShortcut
-  , shortcutId
-  , shortcutDescription
-  , shortcutHold
-  , shortcutHoldDuration
-  , shortcutKeys
-  , shortcutSequence
-  , shortcutTitle
   ) where
 
-import Prelude
-import Data.UndefinedOr (UndefinedOr)
+import Prelude (bind, identity, pure, ($), (<<<))
 import Data.Symbol (SProxy(..))
 import Effect (Effect)
-import Effect.Uncurried (EffectFn1, EffectFn4, EffectFn5, runEffectFn1, runEffectFn4, runEffectFn5)
+import Effect.Uncurried (runEffectFn1)
 import React.Basic (JSX, ReactComponent, element)
 import React.Basic.Classic (createComponent, toReactComponent)
-import React.Basic.Events (EventHandler)
+import React.Keybind.Internal (ProviderRenderProps', shortcutConsumerImpl, shortcutProvider', transformProviderProps, withShortcut')
+import React.Keybind.Types (ProviderPropsRow, ProviderRenderProps, WithShortcutPropsRow)
 import Record (modify) as Record
 import Prim.Row (class Union)
-import Unsafe.Coerce (unsafeCoerce)
 
--- withShortcut
-
-withShortcut ::
-  forall props shortcut.
-  Union WithShortcutPropsRow props shortcut =>
-  String ->
-  Effect ({ shortcut :: ProviderRenderProps | props } -> JSX) ->
-  Effect ({ | props } -> JSX)
-withShortcut name child = do
-  render <- child
-  let componentProps = { render: render <<< Record.modify (SProxy :: SProxy "shortcut") transformProviderProps <<< _.props }
-  let component = toReactComponent identity (createComponent name) componentProps
-        :: ReactComponent { shortcut :: ProviderRenderProps' | props }
-  component' <- withShortcut' (pure component) :: Effect (ReactComponent { | props })
-  pure $ element component'
-
-withShortcut'
-  :: forall props shortcut
-   . Union WithShortcutPropsRow' props shortcut
-  => Effect (ReactComponent { shortcut :: ProviderRenderProps' | props })
-  -> Effect (ReactComponent { | props })
-withShortcut' = (_ >>= runEffectFn1 withShortcut'')
-
-withShortcut''
-  :: forall props shortcut
-   . Union WithShortcutPropsRow' props shortcut
-  => EffectFn1 (ReactComponent { | shortcut }) (ReactComponent { | props })
-withShortcut'' = unsafeCoerce withShortcutImpl
-
-type WithShortcutProps = Record WithShortcutPropsRow
-type WithShortcutPropsRow = ( shortcut :: ProviderRenderProps )
-type WithShortcutProps' = Record WithShortcutPropsRow'
-type WithShortcutPropsRow' = ( shortcut :: ProviderRenderProps' )
-
-
-
--- consumer 
-
-type ProviderRenderProps = Record ProviderRenderPropsRow
-type ProviderRenderPropsRow =
-  ( registerShortcut :: EventHandler {- method -}
-                     -> (Array String) {- keys -}
-                     -> String {- title -}
-                     -> String {- description -}
-                     -> UndefinedOr Number {- holdDuration -}
-                     -> Effect Unit
-  , registerSequenceShortcut :: EventHandler {- method -}
-                             -> (Array String) {- keys -}
-                             -> String {- title -}
-                             -> String {- description -}
-                             -> Effect Unit
-  , shortcuts :: Array IShortcut
-  , triggerShortcut :: String -> Effect Unit
-  , unregisterShortcut :: Array String -> Effect Unit
-  )
-
-type ProviderRenderProps' = Record ProviderRenderPropsRow'
-type ProviderRenderPropsRow' =
-  ( registerShortcut :: EffectFn5 EventHandler {- method -}
-                                  (Array String) {- keys -}
-                                  String {- title -}
-                                  String {- description -}
-                                  -- for this, provide Control.Plus.empty or (pure 7.5)
-                                  (UndefinedOr Number) {- holdDuration -}
-                                  Unit
-  , registerSequenceShortcut :: EffectFn4 EventHandler {- method -}
-                                          (Array String) {- keys -}
-                                          String {- title -}
-                                          String {- description -}
-                                          Unit
-  , shortcuts :: Array IShortcut
-  , triggerShortcut :: EffectFn1 String Unit
-  , unregisterShortcut :: EffectFn1 (Array String) Unit
-  )
-
-transformProviderProps :: ProviderRenderProps' -> ProviderRenderProps
-transformProviderProps {registerShortcut, registerSequenceShortcut, shortcuts, triggerShortcut, unregisterShortcut} =
-  { registerShortcut: runEffectFn5 registerShortcut
-  , registerSequenceShortcut: runEffectFn4 registerSequenceShortcut
-  , shortcuts
-  , triggerShortcut: runEffectFn1 triggerShortcut
-  , unregisterShortcut: runEffectFn1 unregisterShortcut
-  }
-
-shortcutConsumer :: (ProviderRenderProps -> Array JSX) -> JSX
-shortcutConsumer mkChildren = element shortcutConsumerImpl { children: mkChildren <<< transformProviderProps }
-
-
-
--- provider
-
-type ProviderProps = Record ProviderPropsRow
-type ProviderPropsRow =
-  ( children :: Array JSX
-  , ignoreKeys :: Array String
-  , ignoreTagNames :: Array String
-  , preventDefault :: Boolean
-  )
-
+-- | Create a shortcut provider with possible props:
+-- | ```
+-- | children       :: Array JSX
+-- | ignoreKeys     :: Array String
+-- | ignoreTagNames :: Array String
+-- | preventDefault :: Boolean
+-- | ```
 shortcutProvider
   :: forall props props_
    . Union props props_ ProviderPropsRow
@@ -136,26 +61,50 @@ shortcutProvider
   -> JSX
 shortcutProvider = element shortcutProvider'
 
+-- | Shorthand of `shortcutProvider` for only passing in children
 shortcutProvider_ :: Array JSX -> JSX
 shortcutProvider_ children = shortcutProvider { children }
 
-shortcutProvider'
+-- | Create a shortcut consumer that offers the following props:
+-- | ```
+-- | registerShortcut         :: ShortcutSpec -> Effect Unit
+-- | registerSequenceShortcut :: ShortcutSpec -> Effect Unit
+-- | shortcuts                :: Array IShortcut
+-- | triggerShortcut          :: String -> Effect Unit
+-- | unregisterShortcut       :: Array String -> Effect Unit
+-- | ```
+-- | 
+-- | Usage: 
+-- | shortcutConsumer \{registerShortcut, shortcuts} -> [ ... ]
+shortcutConsumer :: (ProviderRenderProps -> Array JSX) -> JSX
+shortcutConsumer mkChildren = element shortcutConsumerImpl { children: mkChildren <<< transformProviderProps }
+
+-- | Equal to React.Basic.Hooks.Component.
+-- | Redefined here to avoid having all of Hooks as a dependency just for one type.
+type Component props = Effect (props → JSX)
+
+-- | A higher-order pure component that adds a single prop `shortcut` containing:
+-- | ```
+-- | registerShortcut         :: ShortcutSpec -> Effect Unit
+-- | registerSequenceShortcut :: ShortcutSpec -> Effect Unit
+-- | shortcuts                :: Array IShortcut
+-- | triggerShortcut          :: String -> Effect Unit
+-- | unregisterShortcut       :: Array String -> Effect Unit
+-- | ```
+-- |
+-- | Use this with (or as an alternative to) `shortcutConsumer`.
+withShortcut
   :: forall props props_
-   . Union props props_ ProviderPropsRow
-  => ReactComponent (Record props)
-shortcutProvider' = unsafeCoerce shortcutProviderImpl
-
--- implementations
-
-foreign import data IShortcut :: Type
-foreign import shortcutId           :: IShortcut -> String
-foreign import shortcutDescription  :: IShortcut -> Boolean
-foreign import shortcutHold         :: IShortcut -> Number
-foreign import shortcutHoldDuration :: IShortcut -> String
-foreign import shortcutKeys         :: IShortcut -> Array String
-foreign import shortcutSequence     :: IShortcut -> Boolean
-foreign import shortcutTitle        :: IShortcut -> String
-
-foreign import shortcutConsumerImpl :: ReactComponent { children :: ProviderRenderProps' -> Array JSX }
-foreign import shortcutProviderImpl :: ReactComponent ProviderProps
-foreign import withShortcutImpl :: forall props props_. EffectFn1 (ReactComponent props) (ReactComponent props_)
+   . Union WithShortcutPropsRow props props_
+  => String
+  -> Component { shortcut :: ProviderRenderProps | props }
+  -> Component { | props }
+withShortcut name child = do
+  render <- child
+  let mapShortcut :: { shortcut :: ProviderRenderProps' | props } -> { shortcut :: ProviderRenderProps | props }
+      mapShortcut = Record.modify (SProxy :: SProxy "shortcut") transformProviderProps
+  let wrappedProps = { render: render <<< mapShortcut <<< _.props }
+  let wrapped = toReactComponent identity (createComponent name) wrappedProps
+        :: ReactComponent { shortcut :: ProviderRenderProps' | props }
+  wrapped' <- runEffectFn1 withShortcut' wrapped :: Effect (ReactComponent { | props })
+  pure $ element wrapped'

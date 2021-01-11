@@ -1,23 +1,23 @@
 module App where
 
 import Prelude
-import Control.Plus (empty)
 import Data.Array as Array
+import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
 import Data.Newtype (wrap)
 import Effect.Aff (delay, launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
-import React.Basic.DOM (div_, h1_, li_, text, ul_)
-import React.Basic.DOM.Events (preventDefault)
-import React.Basic.Events (handler)
+import React.Basic.DOM (button, div_, h1_, li_, text, ul_)
+import React.Basic.Events (handler_)
 import React.Basic.Hooks (Component)
 import React.Basic.Hooks as React
-import React.Keybind (WithShortcutProps, shortcutConsumer, shortcutProvider_, withShortcut, shortcutId, shortcutTitle, shortcutDescription)
+import React.Keybind (shortcutConsumer, shortcutProvider_, withShortcut)
+import React.Keybind.Types (WithShortcutProps)
 
 myComponent :: Component WithShortcutProps
 myComponent = do
-  React.component "MyComponent" \{ shortcut: {registerShortcut, unregisterShortcut, triggerShortcut} } -> React.do
+  React.component "MyComponent" \{ shortcut: { registerShortcut, unregisterShortcut } } -> React.do
     state /\ modifyState <- React.useState { isSaved: false, totalFiles: 0 }
     
     create <- React.useMemo ([] :: Array Unit) \_ -> do
@@ -30,8 +30,10 @@ myComponent = do
       liftEffect $ modifyState \{ totalFiles } -> { isSaved: true, totalFiles }
 
     React.useEffectOnce do
-      _ <- registerShortcut (handler preventDefault (const save)) ["ctrl+s", "cmd+s"] "Save" "Save a file" empty
-      _ <- registerShortcut (handler preventDefault (const create)) ["ctrl+n", "cmd+n"] "New" "Create a new file" empty
+      -- _ <- registerShortcut (handler preventDefault (const save)) ["ctrl+s", "cmd+s"] "Save" "Save a file" Nothing
+      -- _ <- registerShortcut (handler preventDefault (const create)) ["ctrl+n", "cmd+n"] "New" "Create a new file" Nothing
+      _ <- registerShortcut { method: handler_ save, keys: ["ctrl+s", "cmd+s"], title: "Save", description: "Save a file", holdDuration: Nothing }
+      _ <- registerShortcut { method: handler_ create, keys: ["ctrl+n", "cmd+n"], title: "New", description: "Create a new file", holdDuration: Nothing }
       log "Registered shortcuts!"
       pure do
         _ <- unregisterShortcut ["ctrl+s", "cmd+s"]
@@ -55,8 +57,10 @@ mkApp = do
       [ shortcutComponent {}
       , shortcutConsumer \{ shortcuts } -> Array.singleton $ div_
         [ h1_ [text "Available Keys"]
-        , ul_ $ shortcuts <#> \binding ->
-            React.keyed (shortcutId binding) $
-              li_ [text $ shortcutTitle binding <> " - " <> show (shortcutDescription binding)]
+        , ul_ $ shortcuts <#> \{id, title, description, method} -> React.keyed id $
+            li_ $ Array.singleton $ button
+              { onClick: method
+              , children: [text $ title <> " - " <> description]
+              }
         ]
       ]
