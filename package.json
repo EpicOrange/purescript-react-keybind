@@ -4,10 +4,12 @@
   "description": "Bindings for the react-keybind npm package",
   "main": "index.js",
   "scripts": {
-    "build": "spago -x example.spago.dhall build",
+    "build": "spago build",
+    "build-example": "spago -x example.spago.dhall build",
     "clean": "rimraf output && rimraf dist && rimraf .cache",
     "clean-all": "npm run clean && rimraf .spago",
-    "start": "npm run build && parcel html/index.html"
+    "docgen": "rimraf output/React.Keybind*/docs.json; spago build && spago docs -open",
+    "serve-example": "npm run build-example && parcel html/index.html"
   },
   "author": "EpicOrange",
   "license": "MIT",

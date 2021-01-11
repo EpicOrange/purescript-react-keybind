@@ -2,15 +2,25 @@
 -- | the original `react-keybind` library.
 -- | 
 -- | Although all types are exported, `ShortcutSpec` and `WithShortcutProps`
--- | are likely the only two types you'll need from here. For example:
+-- | are likely the only two types you'll need from here.
 -- |
+-- | `Component WithShortcutProps` is the type you pass into `withShortcut`:
 -- | ```
--- | myWrappedComponent :: Component WithShortcutProps
--- | ```
+-- | import React.Basic.Hooks (Component)
+-- | import React.Basic.Hooks as React
+-- | myComponent :: Component WithShortcutProps
+-- | myComponent = React.component "MyComponent" \{ shortcut } -> ...
 -- | 
+-- | myShortcutComponent :: Component {}
+-- | myShortcutComponent = withShortcut "MyShortcutComponent" myComponent
+-- | ```
+-- |
+-- | `ShortcutSpec` is the type you pass into
+-- | `registerShortcut` and `registerSequenceShortcut`:
 -- | ```
 -- | let myShortcut :: ShortcutSpec
 -- |     myShortcut = { method: handler_ doSomething, keys: ["ctrl+h", "cmd+h"], ... }
+-- | _ <- registerShortcut myShortcut
 -- | ```
 
 module React.Keybind.Types

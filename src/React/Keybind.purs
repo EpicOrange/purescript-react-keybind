@@ -1,12 +1,13 @@
 -- | This module provides bindings for the components provided
--- | by the `react-keybind` library, and are meant to be used in the
--- | same fashion as in [React.Basic.DOM](https://pursuit.purescript.org/search?q=React.Basic.DOM).
+-- | by the `react-keybind` library, intended to be used in the
+-- | same fashion as [React.Basic.DOM](https://pursuit.purescript.org/search?q=React.Basic.DOM).
 -- | 
--- | Quick usage guide for `shortcutProvider`, `shortcutConsumer`, and `withShortcut`:
+-- | Quick usage guide for the components
+-- | `shortcutProvider`, `shortcutConsumer`, and `withShortcut`:
 -- | ```
 -- | shortcutProvider { children: [], ignoreKeys: ["shift", "ctrl"] } [ ... ]
 -- |
--- | shortcutConsumer \\{registerShortcut, shortcuts} -> [ ... ]
+-- | shortcutConsumer \{ registerShortcut, shortcuts } -> [ ... ]
 -- |
 -- | myShortcutComponent :: Component {}
 -- | myShortcutComponent = withShortcut "MyShortcutComponent" $
@@ -23,11 +24,11 @@
 -- |                        , holdDuration: Nothing }
 -- | ```
 -- |   
--- | The `keys` field binds every matching key to the given `method` handler.
--- | It's checked (case-insensitive) against KeyboardEvent.key, and
--- | can be modified with `ctrl`, `alt`, `meta`/`cmd`, and `shift`.
+-- | Every key in `keys` gets bound to the given `method` handler.
+-- | The strings are checked (case-insensitive) against `KeyboardEvent.key`,
+-- | and may be modified with `ctrl`, `alt`, `meta`/`cmd`, and `shift`.
 -- | 
--- | For further guidance, check out the examples folder in the git repo!
+-- | For further guidance, check out the `examples` directory in the git repo!
 
 module React.Keybind
   ( shortcutConsumer
@@ -75,7 +76,7 @@ shortcutProvider_ children = shortcutProvider { children }
 -- | ```
 -- | 
 -- | Usage: 
--- | shortcutConsumer \{registerShortcut, shortcuts} -> [ ... ]
+-- | shortcutConsumer \{ registerShortcut, shortcuts } -> [ ... ]
 shortcutConsumer :: (ProviderRenderProps -> Array JSX) -> JSX
 shortcutConsumer mkChildren = element shortcutConsumerImpl { children: mkChildren <<< transformProviderProps }
 
