@@ -35,12 +35,6 @@ Then run:
 spago install react-keybind
 ```
 
-## Licensing
-
-Some of this code is derived from GHC's standard libraries (`base`);
-according to its terms, we have included GHC's license in the file
-`LICENSE-GHC.md`.
-
 ## Documentation
 
 Module documentation is [published on Pursuit](https://pursuit.purescript.org/packages/purescript-react-keybind).

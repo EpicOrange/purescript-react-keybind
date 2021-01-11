@@ -2,8 +2,9 @@
 , dependencies =
   [ "react-basic"
   , "react-basic-classic"
-  , "undefined-or"
   ]
+, license = "MIT"
 , packages = ./packages.dhall
+, repository = "https://github.com/EpicOrange/purescript-react-keybind"
 , sources = [ "src/**/*.purs" ]
 }

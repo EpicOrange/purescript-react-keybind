@@ -2,7 +2,7 @@ module React.Keybind.Internal where
 
 import Prelude (Unit, (<$>), (>>>))
 import Data.Symbol (SProxy(..))
-import Data.UndefinedOr (UndefinedOr, toUndefined)
+import Data.Newtype (class Newtype, wrap)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Prim.Row (class Union)
@@ -24,7 +24,7 @@ transformProviderProps {registerShortcut, registerSequenceShortcut, shortcuts, t
   }
   where
     toEventHandler :: EventHandler' -> EventHandler
-    toEventHandler method = handler syntheticEvent (toUndefined >>> runEffectFn1 method)
+    toEventHandler method = handler syntheticEvent (wrap >>> runEffectFn1 method)
 
 shortcutProvider'
   :: forall props props_
@@ -48,6 +48,10 @@ foreign import unsafeApplyRegisterShortcut :: RegisterShortcutFnType -> Shortcut
 foreign import unsafeApplyRegisterSequenceShortcut :: RegisterSequenceShortcutFnType -> ShortcutSpec -> Effect Unit
 
 -- (internal) foreign types
+
+-- clone of Data.UndefinedOr.UndefinedOr, but with a Newtype instance
+newtype UndefinedOr a = UndefinedOr a
+derive instance newtypeUndefinedOr :: Newtype (UndefinedOr a) _
 
 foreign import data RegisterShortcutFnType :: Type
 foreign import data RegisterSequenceShortcutFnType :: Type
