@@ -1,7 +1,14 @@
 { name = "react-keybind"
 , dependencies =
-  [ "react-basic"
+  [ "effect"
+  , "maybe"
+  , "newtype"
+  , "prelude"
+  , "react-basic"
   , "react-basic-classic"
+  , "record"
+  , "safe-coerce"
+  , "unsafe-coerce"
   ]
 , license = "MIT"
 , packages = ./packages.dhall

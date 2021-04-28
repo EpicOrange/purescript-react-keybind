@@ -21,11 +21,17 @@ Add the following to `additions` in your `packages.dhall`:
 let additions =
       { react-keybind =
         { dependencies =
-            [ "react-basic"
+            [ "effect"
+            , "maybe"
+            , "newtype"
+            , "prelude"
+            , "react-basic"
             , "react-basic-classic"
+            , "record"
+            , "unsafe-coerce"
             ]
         , repo = "https://github.com/EpicOrange/purescript-react-keybind"
-        , version = "v0.8.1"
+        , version = "v0.9.4"
         }
       }
 ```

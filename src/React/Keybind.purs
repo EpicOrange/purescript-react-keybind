@@ -38,15 +38,15 @@ module React.Keybind
   ) where
 
 import Prelude (bind, identity, pure, ($), (<<<))
-import Data.Symbol (SProxy(..))
 import Effect (Effect)
 import Effect.Uncurried (runEffectFn1)
+import Prim.Row (class Union)
 import React.Basic (JSX, ReactComponent, element)
 import React.Basic.Classic (createComponent, toReactComponent)
 import React.Keybind.Internal (ProviderRenderProps', shortcutConsumerImpl, shortcutProvider', transformProviderProps, withShortcut')
 import React.Keybind.Types (ProviderPropsRow, ProviderRenderProps, WithShortcutPropsRow)
 import Record (modify) as Record
-import Prim.Row (class Union)
+import Type.Proxy (Proxy(..))
 
 -- | Create a shortcut provider with possible props:
 -- | ```
@@ -103,7 +103,7 @@ withShortcut
 withShortcut name child = do
   render <- child
   let mapShortcut :: { shortcut :: ProviderRenderProps' | props } -> { shortcut :: ProviderRenderProps | props }
-      mapShortcut = Record.modify (SProxy :: SProxy "shortcut") transformProviderProps
+      mapShortcut = Record.modify (Proxy :: Proxy "shortcut") transformProviderProps
   let wrappedProps = { render: render <<< mapShortcut <<< _.props }
   let wrapped = toReactComponent identity (createComponent name) wrappedProps
         :: ReactComponent { shortcut :: ProviderRenderProps' | props }

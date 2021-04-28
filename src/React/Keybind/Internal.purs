@@ -1,8 +1,7 @@
 module React.Keybind.Internal where
 
 import Prelude (Unit, (<$>), (>>>))
-import Data.Symbol (SProxy(..))
-import Data.Newtype (class Newtype, wrap)
+import Data.Newtype (class Newtype)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Prim.Row (class Union)
@@ -10,6 +9,8 @@ import React.Basic (JSX, ReactComponent)
 import React.Basic.Events (EventHandler, SyntheticEvent, handler, syntheticEvent)
 import React.Keybind.Types (ProviderProps, ProviderPropsRow, ProviderRenderProps, ShortcutSpec)
 import Record (modify) as Record
+import Safe.Coerce (coerce)
+import Type.Proxy (Proxy(..))
 import Unsafe.Coerce (unsafeCoerce)
 
 -- FFI
@@ -18,13 +19,13 @@ transformProviderProps :: ProviderRenderProps' -> ProviderRenderProps
 transformProviderProps {registerShortcut, registerSequenceShortcut, shortcuts, triggerShortcut, unregisterShortcut} =
   { registerShortcut: unsafeApplyRegisterShortcut registerShortcut
   , registerSequenceShortcut: unsafeApplyRegisterSequenceShortcut registerSequenceShortcut
-  , shortcuts: Record.modify (SProxy :: SProxy "method") toEventHandler <$> shortcuts
+  , shortcuts: Record.modify (Proxy :: Proxy "method") toEventHandler <$> shortcuts
   , triggerShortcut: runEffectFn1 triggerShortcut
   , unregisterShortcut: runEffectFn1 unregisterShortcut
   }
   where
     toEventHandler :: EventHandler' -> EventHandler
-    toEventHandler method = handler syntheticEvent (wrap >>> runEffectFn1 method)
+    toEventHandler method = handler syntheticEvent (coerce >>> runEffectFn1 method)
 
 shortcutProvider'
   :: forall props props_
@@ -51,7 +52,7 @@ foreign import unsafeApplyRegisterSequenceShortcut :: RegisterSequenceShortcutFn
 
 -- clone of Data.UndefinedOr.UndefinedOr, but with a Newtype instance
 newtype UndefinedOr a = UndefinedOr a
-derive instance newtypeUndefinedOr :: Newtype (UndefinedOr a) _
+instance newtypeUndefinedOr :: Newtype (UndefinedOr a) a
 
 foreign import data RegisterShortcutFnType :: Type
 foreign import data RegisterSequenceShortcutFnType :: Type
